@@ -64,19 +64,19 @@ def leq(levels):
 
 def callback(in_data, frame_count, time_info, status):
     
-    audio_data = np.frombuffer(in_data, dtype=np.float32)
-    y = lfilter(b, a, audio_data)
-    y_octaves, states = third_oct.filter(audio_data)
+    x = np.frombuffer(in_data, dtype=np.float32)
+    x_filt = lfilter(b, a, x) # A weighting
+    y_octaves, states = third_oct.filter(x)
     
     f.write(datetime.strftime(datetime.now(),'%Y%m%d_%H:%M:%S.%f') + ',')
     for i, y_oct in enumerate(y_octaves.T):
         oct_level = db_level(y_oct, C)
-        f.write('{0:.2f},'.format(oct_level))
+        f.write(f'{oct_level:.2f},')
 
-    La = db_level(y, C)
-    L = db_level(audio_data, C)
-    f.write('{0:.2f},'.format(La))
-    f.write('{0:.2f}'.format(L))
+    La = db_level(x_filt, C)
+    L = db_level(x, C)
+    f.write(f'{La:.2f},')
+    f.write(f'{L:.2f}')
     f.write('\n')
 
     return (in_data, pyaudio.paContinue)
